@@ -101,10 +101,13 @@ for i=1:files_len
             
             % periodogram
             for minute=1:60
-                [pxx,f] = pwelch(axyz(minute_row_from:minute_row_to, 1),256,0,1024,fs_value);
-                [pyy,f] = pwelch(axyz(minute_row_from:minute_row_to, 2),256,0,1024,fs_value);
-                [pzz,f] = pwelch(axyz(minute_row_from:minute_row_to, 3),256,0,1024,fs_value);
-
+                try
+                    [pxx,f] = pwelch(axyz(minute_row_from:minute_row_to, 1),256,0,1024,fs_value);
+                    [pyy,f] = pwelch(axyz(minute_row_from:minute_row_to, 2),256,0,1024,fs_value);
+                    [pzz,f] = pwelch(axyz(minute_row_from:minute_row_to, 3),256,0,1024,fs_value);
+                catch ME
+                    pxx=NaN(513,1);  pyy=NaN(513,1); pzz=NaN(513,1); f=[0:fs_value/1024:fs_value/2]';
+                end
                 % The number of nonzero elements in button
                 btm_all=[btm_all;nnz(bt(minute_row_from:minute_row_to, 1))];
                 pxx1=pxx((f>=0)&(f<25)); pyy1=pyy((f>=0)&(f<25)); pzz1=pzz((f>=0)&(f<25));
