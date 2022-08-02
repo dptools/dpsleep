@@ -1,4 +1,4 @@
-function act(read_dir, output_dir,outdp_dir study, subject, ref_date)
+function act(read_dir, output_dir,outdp_dir, study, subject, ref_date)
 
 %% Study and subject 
 stdy=study; 
