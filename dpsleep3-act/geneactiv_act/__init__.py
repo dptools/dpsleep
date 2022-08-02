@@ -37,7 +37,7 @@ def main(args):
     # expand any ~/ in the directories
     read_dir = os.path.expanduser(args.output_dir)
     output_dir = os.path.expanduser(args.output_dir)
-
+    outdp_dir=output_dir 
     # perform sanity checks for inputs
     read_dir = check_input(read_dir)
     output_dir = check_output(output_dir)
@@ -49,18 +49,19 @@ def main(args):
     logger.addHandler(fh)
 
     # run MATLAB
-    run_matlab(read_dir, output_dir, args.study, args.subject, args.date_from, args.mtl_dir)
+    run_matlab(read_dir, output_dir, outdp_dir, args.study, args.subject, args.date_from, args.mtl_dir)
 
 # Run MATLAB
-def run_matlab(read_dir, output_dir, study, subject, date_from, mtl_dir):
+def run_matlab(read_dir, output_dir,outdp_dir study, subject, date_from, mtl_dir):
     try:
         logger.info('Running matlab')
         matlab_path = "addpath('{matlab_dir}');".format(matlab_dir=mtl_dir)
 
-        sub_cmd = "act('{READ}','{OUT}','{STUDY}','{SUBJECT}','{DATE_FROM}')"
+        sub_cmd = "act('{READ}','{OUT}','{OUTdp}','{STUDY}','{SUBJECT}','{DATE_FROM}')"
         sub_cmd = sub_cmd.format(
             READ=read_dir,
             OUT=output_dir,
+            OUTdp=outdp_dir,
             STUDY=study,
             SUBJECT=subject,
             DATE_FROM=date_from
