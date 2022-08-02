@@ -276,6 +276,12 @@ indf_xpd=reshape(indxpd1,1440,wdb+wdf);
 indsaf2=[zeros(1440,1);saff];
 indsaf1=indsaf2(bgn+1:end-endt);
 indf_saf=reshape(indsaf1,1440,wdb+wdf);
+indf_act=reshape(indxx1,1440,wdb+wdf);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Save mat file %%%%%%%%%%%%%%%%%%%%%%%%%
+save(strcat(outp,stdy,'-',sb1,'-geneactiv_mtl3.mat'),'indf_slp','indf90_slp','indf_act','indf_mgf','indf_xp','indf_bp','indf_saf','indf_xpd')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% You can comment from here to bypass the Plots (except for the last 4 rows) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Plot with sleep %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ff1=figure(1);
@@ -335,8 +341,7 @@ else
 end
 colormap(gca,clrs)
 clr_in1=clrs;
-indf=reshape(indxx1,1440,wdb+wdf);
-indf_act=indf;
+indf=indf_act;
 indff=flip(indf,1);
 hhind=imagesc(indff);
 axi = ancestor(hhind, 'axes');
@@ -374,7 +379,6 @@ ff4=figure(4);
 set(gcf,'position',get(0,'screensize'))
 set(gcf,'color','white')
 set(gcf,'defaultAxesFontName','Arial')
-
 clps=unique(indf_xp);
 excl=clps;
 clrex=jet(length(excl));
@@ -444,8 +448,7 @@ lblf2={'Watch Off';'Sleep';'Awake'};
 savefig(strcat(outp,stdy,'-',sb1(1:3),'-geneactiv_mtl33ss.fig'))
 img = getframe(gcf);
 imwrite(img.cdata, strcat(outp,stdy,'-',sb1(1:3),'-geneactiv_mtl33ss.png'));
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Plot sleep %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Plot sleep %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ff3=figure(3);
 set(gcf,'position',get(0,'screensize'))
 set(gcf,'color','white')
@@ -480,11 +483,7 @@ savefig(strcat(outp,stdy,'-',sb1(1:3),'-geneactiv_mtl3ss.fig'))
 img = getframe(gcf);
 imwrite(img.cdata, strcat(outp,stdy,'-',sb1(1:3),'-geneactiv_mtl3ss.png'));
 
-
-%% Save mat file
-
-save(strcat(outp,stdy,'-',sb1,'-geneactiv_mtl3.mat'),'indf_slp','indf90_slp','indf_act','indf_mgf','indf_xp','indf_bp','indf_saf','indf_xpd')
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Keep this part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clearvars -except s
 
 display('COMPLETE');
