@@ -1,4 +1,4 @@
-function act(read_dir, output_dir, study, subject, ref_date)
+function act(read_dir, output_dir,outdp_dir study, subject, ref_date)
 
 %% Study and subject 
 stdy=study; 
@@ -277,7 +277,91 @@ indsaf2=[zeros(1440,1);saff];
 indsaf1=indsaf2(bgn+1:end-endt);
 indf_saf=reshape(indsaf1,1440,wdb+wdf);
 indf_act=reshape(indxx1,1440,wdb+wdf);
+indp_act=reshape(indxx,1440,wdb+wdf);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DPdash Scores %%%%%%%%%%%%%%%%%%%%%%
+indf_score=indp_act;
+ndy=length(indf_score(1,:));
+indv_scr=reshape(indf_score,1,ndy*1440);
+indv_scr(indv_scr==0)=NaN; 
+indf_scr=reshape(indv_scr,1440,ndy);
+indd_score=nanmean(indf_scr)';
+indf_scr2=reshape(indv_scr,60,24*ndy);
+indh_score1=nanmean(indf_scr2);
+if1=find(~isnan(indh_score1),1,'first');
+ife=24*ceil(if1/24);
+ifs=ife-if1+1;
+indh_ppy1=[NaN(1,ifs) indh_score1(1:end-ifs)];
+indh_score=reshape(indh_score1,24,ndy)';
+indh_ppy=reshape(indh_ppy1,24,ndy)';
+indh_pp=indh_ppy';
+indh_pp(~isnan(indh_pp))=1;
+indd_pp=nansum(indh_pp);
+indd_ppy1=zeros(size(indd_pp));
+indd_ppy1(indd_pp>23)=1;
+il1=find(~isnan(indd_pp),1,'last');
+if indd_pp(il1)>12
+    indd_ppy1(il1)=1;
+end
+indd_ppy=[indd_ppy1;cumsum(indd_ppy1,'omitnan')];
+indd_ppy=indd_ppy';
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DPdash format. %%%%%%%%%%%%%%%%%%%%%%%%
+dys=[1:1:ndy]';
+mdys=dys+mn-1;
+wdys=weekday(mdys);
+jdys=(mdys-datenum('1970-01-01'))*1000*3600*24;
+day=num2str(dys);
+reftime=num2str(jdys);
+weekday1=num2str(wdys);
+timeofday=[];
+for k=1:ndy
+    timeofday=[timeofday;'00:00:00'];
+end
+tab_ddp=table(reftime,day,timeofday,weekday1);
+try
+   % tab_ddp.Properties.VariableNames{'days'} = 'day';
+    tab_ddp.Properties.VariableNames{'weekday1'} = 'weekday';
+catch ME
+
+end
+score=indh_score;
+score2=round(100*score)/100;
+score1=string(score2);
+tab_scr_hr1 =array2table(score1);
+tab_scr_hr1.Properties.VariableNames={'activityScore_hour01','activityScore_hour02', 'activityScore_hour03','activityScore_hour04','activityScore_hour05','activityScore_hour06','activityScore_hour07','activityScore_hour08','activityScore_hour09','activityScore_hour10','activityScore_hour11','activityScore_hour12','activityScore_hour13','activityScore_hour14','activityScore_hour15','activityScore_hour16','activityScore_hour17','activityScore_hour18','activityScore_hour19','activityScore_hour20','activityScore_hour21','activityScore_hour22','activityScore_hour23','activityScore_hour24'};
+tab_scr_hr=[tab_ddp tab_scr_hr1];
+%%
+display('Checking output directory for DPDash.');
+adrq0=outdp_dir;
+% Check if the path is properly formatted
+if ~ endsWith(adrq0, '/')
+    adrq0 = strcat(adrq0, '/');
+end
+adrq00=strcat(adrq0,'accel');
+if exist(adrq00,'dir')~=7
+    mkdir(adrq00)
+end
+writetable(tab_scr_hr,strcat(adrq00,'/',study,'-',sb1,'-actigraphy_GENEActiv_accel_activityScores_hourly-day1to',num2str(ndy),'.csv'),'Delimiter',',','QuoteStrings',false)
+%% 
+scoref=indh_ppy;
+score4=round(100*scoref)/100;
+score3=string(score4);
+tab_scr_hr2 =array2table(score3);
+tab_scr_hr2.Properties.VariableNames={'activityScore_hour01','activityScore_hour02', 'activityScore_hour03','activityScore_hour04','activityScore_hour05','activityScore_hour06','activityScore_hour07','activityScore_hour08','activityScore_hour09','activityScore_hour10','activityScore_hour11','activityScore_hour12','activityScore_hour13','activityScore_hour14','activityScore_hour15','activityScore_hour16','activityScore_hour17','activityScore_hour18','activityScore_hour19','activityScore_hour20','activityScore_hour21','activityScore_hour22','activityScore_hour23','activityScore_hour24'};
+tab_scr_hrf=[tab_ddp tab_scr_hr2];
+writetable(tab_scr_hrf,strcat(adrq00,'/',study,'-',sb1,'-actigraphy_GENEActiv_accshft_activityScores_hourly-day1to',num2str(ndy),'.csv'),'Delimiter',',','QuoteStrings',false)
+%% 
+score5=indd_ppy;
+scorep=string(score5);
+tab_scr_hr3 =array2table(scorep);
+tab_scr_hr3.Properties.VariableNames={'pay','payc'};
+tab_scr_hrp=[tab_ddp tab_scr_hr3];
+writetable(tab_scr_hrp,strcat(adrq00,'/',study,'-',sb1,'-actigraphy_GENEActiv_pay_daily-day1to',num2str(ndy),'.csv'),'Delimiter',',','QuoteStrings',false)
+%% Build data and figures folder 
+outp=adrq;
+if exist(outp,'dir')~=7
+   mkdir(outp) 
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Save mat file %%%%%%%%%%%%%%%%%%%%%%%%%
 save(strcat(outp,stdy,'-',sb1,'-geneactiv_mtl3.mat'),'indf_slp','indf90_slp','indf_act','indf_mgf','indf_xp','indf_bp','indf_saf','indf_xpd')
 
@@ -483,7 +567,7 @@ savefig(strcat(outp,stdy,'-',sb1(1:3),'-geneactiv_mtl3ss.fig'))
 img = getframe(gcf);
 imwrite(img.cdata, strcat(outp,stdy,'-',sb1(1:3),'-geneactiv_mtl3ss.png'));
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Keep this part %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Keep this part  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clearvars -except s
 
 display('COMPLETE');
