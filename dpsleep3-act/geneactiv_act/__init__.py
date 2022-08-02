@@ -52,7 +52,7 @@ def main(args):
     run_matlab(read_dir, output_dir, outdp_dir, args.study, args.subject, args.date_from, args.mtl_dir)
 
 # Run MATLAB
-def run_matlab(read_dir, output_dir,outdp_dir study, subject, date_from, mtl_dir):
+def run_matlab(read_dir, output_dir,outdp_dir, study, subject, date_from, mtl_dir):
     try:
         logger.info('Running matlab')
         matlab_path = "addpath('{matlab_dir}');".format(matlab_dir=mtl_dir)
