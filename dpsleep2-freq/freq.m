@@ -112,7 +112,7 @@ for i=1:files_len
                 btm_all=[btm_all;nnz(bt(minute_row_from:minute_row_to, 1))];
                 pxx1=pxx((f>=0)&(f<50)); pyy1=pyy((f>=0)&(f<50)); pzz1=pzz((f>=0)&(f<50));
                 px_all=[px_all;pxx1']; py_all=[py_all;pyy1']; pz_all=[pz_all;pzz1'];
-                f1=f((f>=0)&(f<50)); f_all=[f_all;f1'];
+                f1=f((f>=0)&(f<50)); f_all=[f_all;f1']; % frequency up to 100Hz
 
                 % Loop increment 
                 minute_row_from = minute_row_to + 1; 
