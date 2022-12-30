@@ -386,7 +386,7 @@ def get_tz(path):
 
 # Get the frequency and first date from the file
 def get_fs(path):
-    df = read_csv(path, 2, DATA_BEGINS)
+    df = read_csv(path, 3, DATA_BEGINS)
     if len(df) == 0:
         logger.error('There are no data in file %s.' % path)
         return None, None
@@ -395,7 +395,7 @@ def get_fs(path):
         df['$timestamp_dt'] = df.apply(lambda row: get_datetime(row['timestamp']), axis=1)
         df['$timestamp_fs'] = df['$timestamp_dt'].diff()
         df['$timestamp_fs'] = df.apply(lambda row: calculate_fs(row['$timestamp_fs']), axis=1)
-        return round(df['$timestamp_fs'].iloc[1]), df['$timestamp_dt'].iloc[0]
+        return round((df['$timestamp_fs'].iloc[1]+df['$timestamp_fs'].iloc[2])/2), df['$timestamp_dt'].iloc[0]
     else:
         logger.error('Could not get the frequency from %s' % path)
         return None, None
