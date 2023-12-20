@@ -29,14 +29,14 @@ end
 adrq0=output_dir0;
 % Check if the path is properly formatted
 if ~ endsWith(adrq0, '/')
-    adrq0 = strcat(adrq0, '/');
+   adrq0 = strcat(adrq0, '/');
 end
 
 %% Find the files related to the day + some days before and after that day
 display('Finding files.');
-d3=dir(strcat(adr1,'*.mat'));
-
-files_len = length(d3);
+d5=dir(strcat(adr1,'*.mat'));
+d3=dir(strcat(adrq0,'mtl3/*.mat'));
+files_len = length(d5);
 % Exit if there are no files to read
 if files_len == 0
     display('Files do not exist under this directory.');
@@ -45,7 +45,9 @@ end
 
 %% Parameters/ Read data
 display('Initializing adresses.');
-load(strcat(adr1,'/',d3.name))
+
+load(strcat(adr1,'/',d5.name))
+load(strcat(adrq0,'mtl3/',d3.name))
 ndy=length(indf_score(1,:));
 
 ins_active=indf_active;
@@ -88,19 +90,20 @@ indh_score1=nanmean(indf_scr2);
 indh_score=reshape(indh_score1,24,ndy)';
 
 outp=adrq;
-if exist(strcat(adr2,'/',sb1,'_res_foc_qcd.csv'), 'file') == 2
-    qst=readtable(strcat(adr2,'/',sb1,'_res_foc_qcd.csv'));
+if exist(strcat(adr2,sb1,'_res_foc_qcd.csv'), 'file') == 2
+    qst=readtable(strcat(adr2,sb1,'_res_foc_qcd.csv'));
 else
-    qst=readtable(strcat(adr2,'/',sb1,'_res_foc.csv'));
+    qst=readtable(strcat(adr2,sb1,'_res_foc.csv'));
 end
 for dy1=1:ndy
     comnt=[];
-    try 
+ %   try 
             indf_out=indf_score(:,dy1);
             indf_prc=indf_active(:,dy1);
             indf_light1=indf_light(:,dy1);
             indf_phone=indf_phone1(:,dy1);
             indf_wlk=indf_walk(:,dy1);
+            indf_raw=indf_saf0(:,dy1);
             
             bts1=qst.bed_start_qc{dy1,1};
             bts2=qst.bed_up_qc{dy1,1};
@@ -112,13 +115,13 @@ for dy1=1:ndy
             nst2=qst.nap2_str_qc{dy1,1};    
             nsp2=qst.nap2_stp_qc{dy1,1};
                 
-            updm=process_actigraphy_update(sts1,sts2,bts1,bts2,nst1,nsp1,nst2,nsp2,indf_out,indf_prc,indf_light1,indf_phone,indf_wlk);
-    catch ME
-            disp(sb1)
-            dy1
-            updm=[NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,0];
-            comnt=[comnt '/ no data'];
-    end            
+            updm=process_actigraphy_update(sts1,sts2,bts1,bts2,nst1,nsp1,nst2,nsp2,indf_out,indf_prc,indf_light1,indf_phone,indf_wlk,indf_raw);
+    % catch ME
+    %         disp(sb1)
+    %         dy1
+    %         updm=[NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,0];
+    %         comnt=[comnt '/ no data'];
+    % end            
     %% qc
     bed_start_qc{dy1,1}=bts1;
     bed_up_qc{dy1,1}=bts2;
@@ -131,8 +134,8 @@ for dy1=1:ndy
     nap2_stp_qc{dy1,1}=nsp2;
 
     off_wrist_qc{dy1,1}=num2str(updm(1));
-    sleep6pm_onst_qc{dy1,1}=num2str(18+updm(2));
-    wake6pm_time_qc{dy1,1}=num2str(updm(3)-6);
+    sleep6pm_onst_qc{dy1,1}=num2str(updm(2));
+    wake6pm_time_qc{dy1,1}=num2str(updm(3));
     bed_dur_qc{dy1,1}=num2str(updm(4));
     sleep_dur_qc{dy1,1}=num2str(updm(5));        
     sleep_lat_qc{dy1,1}=num2str(updm(6));
@@ -182,8 +185,11 @@ for dy1=1:ndy
     activlev_after_min_qc{dy1,1}=num2str(updm(41));
     activdur_before_min_qc{dy1,1}=num2str(updm(42));
     activdur_after_min_qc{dy1,1}=num2str(updm(43));
+    activraw_before_avg_qc{dy1,1}=num2str(updm(44));
+    activraw_after_avg_qc{dy1,1}=num2str(updm(45));
+    activraw_sleep_avg_qc{dy1,1}=num2str(updm(46));
 
-    data_accpt_qc{dy1,1}=num2str(updm(44));
+    data_accpt_qc{dy1,1}=num2str(updm(47));
     cmnt_qc{dy1,1}=comnt;
 end
 wlkb=str2double(walk_before_min_qc);
@@ -196,31 +202,38 @@ runa=str2double(run_after_min_qc);
 rund=runa+[runb(2:end);NaN];
 run_day_min_qc=cellstr(num2str(rund));
 
+acdb=str2double(activdur_before_min_qc);
+acda=str2double(activdur_after_min_qc);
+acdd=acda+[acdb(2:end);NaN];
+activdur_day_min_qc=cellstr(num2str(acdd));
+
 actb=str2double(active_before_min_qc);
 acta=str2double(active_after_min_qc);
 actd=acta+[actb(2:end);NaN];
 active_day_min_qc=cellstr(num2str(actd));
 
-aclb=str2double(activlev_before_min_qc);
-acla=str2double(activlev_after_min_qc);
+aclb=str2double(activlev_before_min_qc);  % This is already summation
+acla=str2double(activlev_after_min_qc);   % This is already summation
 acld=acla+[aclb(2:end);NaN];
-acdb=str2double(activdur_before_min_qc);
-acda=str2double(activdur_after_min_qc);
-acdd=acda+[acdb(2:end);NaN];
+activlevp_day_per_qc=cellstr(num2str(acld./acdd));
+
+acrb=str2double(activraw_before_avg_qc);
+acra=str2double(activraw_after_avg_qc);
+acrb_sh=[acrb(2:end);NaN];    % Tomorrow's before-sleep activity is counted for today's wake activity
+acrd=acra.*acda + acrb_sh.*acdb;
+activraw_day_avg_qc=cellstr(num2str(acrd./acdd));
+
 actw=100*actd./acdd;
 acts=str2double(sleep_activity_qc);
 actswr=acts./actw;
 active_sleep_wake_qc=cellstr(num2str(actswr));
-activlevp_day_per_qc=cellstr(num2str(100*actd./acdd));
-activdur_day_min_qc=cellstr(num2str(acdd));
-
 
 tab1=table(bed_start_qc,bed_up_qc,sleep_start_qc,sleep_wake_qc,sleep6pm_onst_qc,wake6pm_time_qc,bed_dur_qc,sleep_dur_qc,off_wrist_qc,sleep_lat_qc, ...
         light_nbout_qc,light_mins_qc,phone_nbout_qc,phone_mins_qc, ...
         sleep_glat_qc,sleep_imob_old_qc,sleep_nphase_old_qc,sleep_mphase_old_qc, ...
         actual_sleep_time_qc,actual_wake_time_qc,sleep_bout_num_qc,wake_bout_num_qc,sleep_bout_mn_qc,wake_bout_mn_qc,sleep_eff_qc, ...
         sleep_imob_mins_qc,sleep_move_mins_qc,sleep_imob_per_qc,sleep_move_per_qc, sleep_phase_num_qc,sleep_phase1_num_qc,sleep_phase_per_qc,sleep_frag_inx_qc, sleep_frag_evnt_qc, sleep_activity_qc, ...
-        nap1_str_qc,nap1_stp_qc,nap1_durn_qc,nap2_str_qc,nap2_stp_qc,nap2_durn_qc,walk_day_min_qc,run_day_min_qc,active_day_min_qc,activlevp_day_per_qc,activdur_day_min_qc,active_sleep_wake_qc,data_accpt_qc,cmnt_qc);
+        nap1_str_qc,nap1_stp_qc,nap1_durn_qc,nap2_str_qc,nap2_stp_qc,nap2_durn_qc,walk_day_min_qc,run_day_min_qc,active_day_min_qc,activlevp_day_per_qc,activdur_day_min_qc,active_sleep_wake_qc,activraw_day_avg_qc,activraw_sleep_avg_qc,data_accpt_qc,cmnt_qc);
 tab0=qst(:,1:8);
 tabb=[tab0 tab1];
 writetable(tabb,strcat(outp,'/',sb1,'_res_foc_qcd.csv'),'Delimiter',',','QuoteStrings',false)
@@ -336,7 +349,8 @@ tab_scr_d0=table(score_daily);
 tab_scr_d=[tab_ddp tab_scr_d0];
 writetable(tab_scr_d,strcat(adrq0,'/',study,'-',sb1,'-actigraphy_GENEActiv_accel_ActivityScores_daily-day1to',num2str(ndy),'.csv'),'Delimiter',',','QuoteStrings',false)
 
-save(strcat(outp,'/',stdy,'-',sb1(1:3),'-all2.mat'),'tabb','dys','indd_active','indd_score','indh_score','indh_active','insd_active','inwd_active','insd_activer','inwd_activer','insd_activest','inwd_activest')
+save(strcat(outp,'/',stdy,'-',sb1,'-all2.mat'),'tabb','dys','indd_active','indd_score','indh_score','indh_active','insd_active','inwd_active','insd_activer','inwd_activer','insd_activest','inwd_activest')
 
 display('COMPLETE');
 exit(0);
+

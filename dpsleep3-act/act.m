@@ -46,7 +46,7 @@ thra=0.05;          % Threshhold to find active/non-active minutes
 fcth=1.2;             % Frequency threshhold to find acive minutes 
 thrw=.05; thrr=.05;    %Thresholds for walking and running
 
-d4=extractfield(d3,'name');
+d4={d3.name};
 d5=split(d4,'.'); d61=d5(:,:,1);
 d51=split(d61,'_'); d6=d51(:,:,2);
 d7=datenum(d6);
@@ -57,7 +57,7 @@ d4s=d4(ids);
 
 indx=3*ones(1440*(wdb+wdf),1);  indb=zeros(1440*(wdb+wdf),1); indxp=zeros(1440*(wdb+wdf),1); indxbp=zeros(1440*(wdb+wdf),1); indxpd=zeros(1440*(wdb+wdf),1); 
 indxx=3*ones(1440*(wdb+wdf),1); inds=zeros(1440*(wdb+wdf),1);  indx_slp=2*ones(1440*(wdb+wdf),1); indx_phil=2*ones(1440*(wdb+wdf),1); ind90_slp=2*ones(1440*(wdb+wdf),1);
-  indpf=ones(1440*(wdb+wdf),1);
+indpf=ones(1440*(wdb+wdf),1);
 
 %% Extract data both time and frequency
 td=(1/1440):(1/1440):(wdb+wdf);
@@ -65,11 +65,11 @@ tdd=(1/1440):(1/1440):(wdb+wdf);
 idar=d7sr;
 ida=1:wdf;
 [idall,ia,ib]=intersect(ida,idar);
-mxtal1=[]; mytal1=[]; mztal1=[]; sxtal1=[]; sytal1=[]; sztal1=[]; bff=[]; mgf=[]; spf=[];
+mxtal1=[]; mytal1=[]; mztal1=[]; sxtal1=[]; sytal1=[]; sztal1=[]; bff=[]; mgf=[]; spf=[]; spfn=[];
 i2=0;
 for i1=1:length(ida)
     if ~ismember(i1,ia)       
-       bff0=zeros(1440,1);  spf0=zeros(1440,1);
+       bff0=zeros(1440,1);  spf0=zeros(1440,1);  spfn0=zeros(1440,1);
        mxt=zeros(1,1440); myt=zeros(1,1440); mzt=zeros(1,1440); mgt=zeros(1,1440);
        sxt=zeros(1,1440); syt=zeros(1,1440); szt=zeros(1,1440);
     else
@@ -77,12 +77,21 @@ for i1=1:length(ida)
         i=ib(i2);
         load(strcat(adr,d4s{1,i}))                    
         %% Mean spectrum       
-        mfn=f_all(1,:);
-        px_all(:,mfn<fth)=NaN;  py_all(:,mfn<fth)=NaN;  pz_all(:,mfn<fth)=NaN;
-        xmf=nanmean(px_all,2); % Read spectrum
-        ymf=nanmean(py_all,2);
-        zmf=nanmean(pz_all,2);
+        mfn=f_all(1,:); xf1=px_all;  yf1=py_all;  zf1=pz_all;
+        xf11=xf1(:,mfn>=fth);  yf11=yf1(:,mfn>=fth);  zf11=zf1(:,mfn>=fth); mfn1=mfn(mfn>=fth);
+        
+        xmfn=trapz(mfn1,xf11,2); % Read spectrum (This is only for Pure activity calculation)
+        ymfn=trapz(mfn1,yf11,2);
+        zmfn=trapz(mfn1,zf11,2);
+        spfn0x=(xmfn.^2+ymfn.^2+zmfn.^2).^(.5);
+        spfn0=real(spfn0x);
+        
+        xf1(:,mfn<fth)=NaN;  yf1(:,mfn<fth)=NaN;  zf1(:,mfn<fth)=NaN;
+        xmf=nanmean(xf1,2); % Read spectrum
+        ymf=nanmean(yf1,2);
+        zmf=nanmean(zf1,2);
         spf0=(xmf.^2+ymf.^2+zmf.^2).^(.5);
+        
         bff0=btm_all; %#ok<*AGROW>                
         mxf=round(max(f_all,[],2)*4)/2;   % Calculate the sampling frequency at each minute
         %% Standard deviation
@@ -95,9 +104,9 @@ for i1=1:length(ida)
     end
     mxtal1=[mxtal1;mxt']; mytal1=[mytal1;myt']; mztal1=[mztal1;mzt'];  mgf=[mgf;mgt'];
     sxtal1=[sxtal1;sxt']; sytal1=[sytal1;syt']; sztal1=[sztal1;szt'];
-    spf=[spf;spf0]; bff=[bff;bff0];
+    spf=[spf;spf0]; spfn=[spfn;spfn0]; bff=[bff;bff0];
 end
- bf=bff; 
+bf=bff; 
 
 %% Find watch off epochs
 sxtal=sxtal1;   sytal=sytal1; sztal=sztal1;
@@ -129,6 +138,7 @@ prbf7=prctile(safz,50);
 prbf8=prctile(safz,75);
 
 %% Find moving average of spectrum 1min window
+saff0=movmean(spfn,[0 1]);
 saff=movmean(spf,[0 1]);
 saff1=saff;
 saff1(smv1<smt | smb1<smt)=0;      % watch off long
@@ -275,7 +285,10 @@ indxpd1=indxpd2(bgn+1:end-endt);
 indf_xpd=reshape(indxpd1,1440,wdb+wdf);
 indsaf2=[zeros(1440,1);saff];
 indsaf1=indsaf2(bgn+1:end-endt);
+indsaf02=[zeros(1440,1);saff0];
+indsaf01=indsaf02(bgn+1:end-endt);
 indf_saf=reshape(indsaf1,1440,wdb+wdf);
+indf_saf0=reshape(indsaf01,1440,wdb+wdf);
 indf_act=reshape(indxx1,1440,wdb+wdf);
 indp_act=reshape(indxx,1440,wdb+wdf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DPdash Scores %%%%%%%%%%%%%%%%%%%%%%
@@ -363,7 +376,7 @@ if exist(outp,'dir')~=7
    mkdir(outp) 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Save mat file %%%%%%%%%%%%%%%%%%%%%%%%%
-save(strcat(outp,stdy,'-',sb1,'-geneactiv_mtl3.mat'),'indf_slp','indf90_slp','indf_act','indf_mgf','indf_xp','indf_bp','indf_saf','indf_xpd')
+save(strcat(outp,stdy,'-',sb1,'-geneactiv_mtl3.mat'),'indf_slp','indf90_slp','indf_act','indf_mgf','indf_xp','indf_bp','indf_saf','indf_saf0','indf_xpd')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% You can comment from here to bypass the Plots (except for the last 4 rows) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

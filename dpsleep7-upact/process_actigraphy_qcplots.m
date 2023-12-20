@@ -1,12 +1,8 @@
-function [tst1,tst2,bst1,bst2,nst1,nsp1,nst2,nsp2,comnt,indf_out,indf_prc,indf_all,indf_light1, indf_phone,indoff,ff1]=process_actigraphy_qcplots(subject,day,study,adr)
+function [tst1,tst2,bst1,bst2,nst1,nsp1,nst2,nsp2,comnt,indf_out,indf_prc,indf_all,indf_light1, indf_phone,indf_wlk,indoff,ff1]=process_actigraphy_qcplots(subject,day,study,adr)
 %%
 tst=18; tsp=18;
 sb1=subject;
 stdy=study;
-
-%%
-outp=strcat('/ncf/cnl03/PHOENIX/GENERAL/',stdy,'/',sb1,'/actigraphy/processed/mtl5');
-outm=strcat('/ncf/cnl03/PHOENIX/GENERAL/',stdy,'/',sb1,'/actigraphy/processed/mtl6');
 
 %%
 d3=dir(strcat(adr,'*.mat'));
@@ -24,7 +20,7 @@ set(gcf,'position',get(0,'screensize')-[0,0,200,0])
 set(gcf,'color','white')
 
 %% GPS
-subplot(7,1,7)
+subplot(8,1,8)
 indfd1=indf_gaz(:,day);
 %% Time Zone
 tdl=timezone(lnkc,'degree')-timezone(lnkc(1),'degree');
@@ -103,6 +99,7 @@ else
     tdlx=tdls(exl,:);
     lblfx=lblf2(exl,:);
     clrex=clrs(exl,:);
+    clerex=clrex(1:end-2,:);
     colormap(gca,clrex)
     indfs=zeros(size(indfd));
     for k=1:length(clpg)
@@ -123,24 +120,46 @@ else
     ylabel('GPS','FontWeight','b','FontSize',14)
     grid on
     grid minor
+    %set(h25fpp,'Ylim',[1, length(clpg)-1],'YTick',1:.99:length(clpg),'YTickLabel',strcat(tdlx,lblfx),'FontSize',10)
     set(h25fpp,'YTick',1:.99:length(clpg),'YTickLabel',strcat(tdlx,lblfx),'FontSize',10)
 end
-%% activity 
-subplot(7,1,1)
+%% activity 0
+subplot(8,1,1)
 indfd=indf_active(:,day);
 indf_prc=indfd;
 hhind=bar(.5:1:24*60-.5,indf_prc,1,'FaceColor','k','EdgeColor','k');
 axi = ancestor(hhind, 'axes');
 xrule = axi.XAxis;  yrule = axi.YAxis;
 set(gca, 'FontWeight','b')
-%set(gca,'XAxisLocation','top')
+set(gca,'XAxisLocation','top')
+set(gca,'XTick',0.5:15:((24+tsp-tst)*60+0.5),'XTickLabel',xlabels,'XTickLabelRotation',90)  
+%set(gca,'XTick',0.5:15:((24+tsp-tst)*60+0.5),'XTickLabel',' ','XTickLabelRotation',90)
+xrule.FontSize = 8;        
+ylabel('Activity0','FontWeight','b','FontSize',14)
+title(num2str(day),'FontWeight','b','FontSize',14)
+set(gca,'YTickLabel',' ')
+ylim([0 22])
+xlim([0 24*60+.5]);
+grid on
+grid minor
+colormap(gca,[1 1 1])
+h25fpp=colorbar;
+set(h25fpp,'YTick',1,'YTickLabel','     ','FontSize',10)
+
+%%
+subplot(8,1,2)
+hhind=bar(.5:1:24*60-.5,indf_prc,1,'FaceColor','k','EdgeColor','k');
+axi = ancestor(hhind, 'axes');
+xrule = axi.XAxis;  yrule = axi.YAxis;
+set(gca, 'FontWeight','b')
+set(gca,'XAxisLocation','top')
 %set(gca,'XTick',0.5:15:((24+tsp-tst)*60+0.5),'XTickLabel',xlabels,'XTickLabelRotation',90)  
 set(gca,'XTick',0.5:15:((24+tsp-tst)*60+0.5),'XTickLabel',' ','XTickLabelRotation',90)
 xrule.FontSize = 8;        
-ylabel('Activity','FontWeight','b','FontSize',14)
-title(num2str(day),'FontWeight','b','FontSize',14)
+ylabel('Activity4','FontWeight','b','FontSize',14)
+%title(num2str(day),'FontWeight','b','FontSize',14)
 set(gca,'YTickLabel',' ')
-ylim([8 22])
+ylim([8.05 22])
 xlim([0 24*60+.5]);
 grid on
 grid minor
@@ -149,7 +168,7 @@ h25fpp=colorbar;
 set(h25fpp,'YTick',1,'YTickLabel','     ','FontSize',10)
 
 %% Actigraphy
-subplot(7,1,2)
+subplot(8,1,3)
 indfd=indf_score(:,day);
 indf_out=indfd;
 indf_but=zeros(size(indf_out));
@@ -211,14 +230,15 @@ set(gca,'YTickLabel',' ')
 ylabel('Score','FontWeight','b','FontSize',14)
 grid on
 grid minor
-set(h25fpp,'YTick',min(excl)+.5:.85:length(excl)+.5,'YTickLabel',lblf3,'FontSize',10)
+%set(h25fpp,'Ylim',[min(excl) length(excl)-1],'YTick',min(excl)+.5:.8:length(excl)+.5,'YTickLabel',lblf3,'FontSize',10)
+set(h25fpp,'YTick',min(excl)+.5:.8:length(excl)+.5,'YTickLabel',lblf3,'FontSize',10)
 
 %% Sleep
-subplot(7,1,3)
+subplot(8,1,4)
 indfd=indf_sleep(:,day);
-indfss=4*ones(size(indfd));
+indfss=1*ones(size(indfd));
 indfss(indfd==0)=0;
-indfsb=4*ones(size(indfd));
+indfsb=1*ones(size(indfd));
 indfsb(indfd==0)=0;
 indfds=indfd;
 indfds(indfds==0)=0;
@@ -430,8 +450,8 @@ if (~isempty(its1) && ~isempty(its2))
     
     if isempty(tst2)
         if isempty(bst2)
-            bst2='21:55';
-            tst2='21:53';
+            bst2='17:55';
+            tst2='17:53';
         else
             tst2=bst2;
             iit2=iit4;
@@ -636,24 +656,26 @@ end
 %% plot
 % iit1=sleep start   % iit2=sleep end
 % iit3=bed start     % iit4=bed end
-% indfd(iit1)=3; indfd(iit2)=3; 
-% indfd(iit3)=3; indfd(iit4)=3;
+% indfd(iit1)=3; % indfd(iit2)=3; 
+% indfd(iit3)=3; % indfd(iit4)=3;
 %assignin('base','indd',indfd)
 indfss(indf_lw2==1)=5;
-indfss(iit1:iit2)=2;
-indfsb(iit3:iit4)=3;
-indfd(indfd==2)=4;
-indf_all=[indfsb indfss indfd];
+indfss(iit1:iit2)=3;
+indfsb(iit3:iit4)=4;
+indfdd=indfd;
+indfdd(indfd==2)=1;
+indfdd(indfd==1)=2;
+indf_all=[indfsb'; indfss'; indfdd'];
 indf_alm=indf_all;
 clps=unique(indf_all);
 for k=1:length(clps)
     indf_alm(indf_all==clps(k))=k;
 end
-clrs=[1 1 1;1 1 .75;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;.9 .9 .9;0.8660 0.6740 0.1880];
+clrs=[1 1 1;.9 .9 .9;1 1 .75;0.4660 0.6740 0.1880;0.3010 0.7450 0.9330;0.8660 0.6740 0.1880 ];
 excl=clps+1;
 clrex=clrs(excl,:);
 colormap(gca,clrex)
-hhind=imagesc(indf_alm');
+hhind=imagesc(indf_alm);
 axi = ancestor(hhind, 'axes');
 xrule = axi.XAxis;  yrule = axi.YAxis;
 h25fpp=colorbar;
@@ -663,12 +685,12 @@ ylabel('Sleep','FontWeight','b','FontSize',14)
 set(gca,'YTickLabel',' ')
 grid on
 grid minor
-lblf2={'Off'; 'Alg';'Slp';'Bed'; 'Oth';'Nap'};
+lblf2={'Off';'Other'; 'Algorithm';'Sleep';'Bed'; 'Nap'};
 lblf3=lblf2(excl);
-set(h25fpp,'YTick',(excl-1),'YTickLabel',lblf3,'FontSize',10)
+set(h25fpp,'YTick',min(clps):.85:max(clps),'YTickLabel',lblf3,'FontSize',10)
 
 %% Light
-subplot(7,1,4)
+subplot(8,1,5)
 indfd=indf_light(:,day);
 indf_light1=indfd;
 indfd(indfd>100)=100;
@@ -685,7 +707,7 @@ grid on
 grid minor
 
 %% Phone Use
-subplot(7,1,5)
+subplot(8,1,6)
 indfd=indf_phone1(:,day);
 indf_phone=indfd;
 clps=unique(indfd);
@@ -703,12 +725,12 @@ ylabel('Phone','FontWeight','b','FontSize',14)
 set(gca,'YTickLabel',' ')
 grid on
 grid minor
-lblf2={ 'Unlk'; 'NoEv';'Lock';'Used'};
+lblf2={ 'Unlocked'; 'No Event';'Locked';'In-Use'};
 lblf3=lblf2(excl);
-set(h25fpp,'YTick',excl-2,'YTickLabel',lblf3,'FontSize',10)
+set(h25fpp,'YTick',min(clps):.85:length(clps)+.5,'YTickLabel',lblf3,'FontSize',10)
 
 %% Accelerometer
-subplot(7,1,6)
+subplot(8,1,7)
 indfd=indf_phone2(:,day);
 indf_accel=indfd;
 clps=unique(indfd);
@@ -724,13 +746,88 @@ set(gca, 'FontWeight','b')
 set(gca,'XTick',0.5:15:((24+tsp-tst)*60+0.5),'XTickLabel',' ','XTickLabelRotation',90)            
 xrule.FontSize = 8;
 set(gca,'YTickLabel',' ')
-ylabel('Accel','FontWeight','b','FontSize',14)
+ylabel('Acceleration','FontWeight','b','FontSize',14)
 grid on
 grid minor
-lblf2={ 'NoDa';'Low '; '>75%';'>90%'};
+lblf2={ 'No Data';'Low '; '>75%';'>90%'};
 lblf3=lblf2(excl);
-set(h25fpp,'YTick',excl-1,'YTickLabel',lblf3,'FontSize',10)
+%set(h25fpp,'Ylim',[min(clps)+.89 max(clps)] ,'YTick',min(clps):.9:max(clps),'YTickLabel',lblf3,'FontSize',10)
+set(h25fpp ,'YTick',min(clps):.9:max(clps),'YTickLabel',lblf3,'FontSize',10)
 
+indf_wlk=indf_walk(:,day);
 
+%% Enlarge the figures
+subplot(8,1,1)
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width-.015 ax_height];
+subplot(8,1,2)
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width-.015 ax_height];
+subplot(8,1,3)
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width-.013 ax_height];
+subplot(8,1,4)
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width-.013 ax_height];
+subplot(8,1,5)
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width-.013 ax_height];
+subplot(8,1,6)
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width-.013 ax_height];
+subplot(8,1,7)
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width-.013 ax_height];
+subplot(8,1,8)
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width-.013 ax_height];
 
 disp(strcat('Day ',num2str(day), ' is done.'))

@@ -1,6 +1,7 @@
-function updm=process_actigraphy_update(tst1,tst2,bst1,bst2,nst1,nsp1,nst2,nsp2,indf_out,indf_prc,indf_light,indf_phone,indf_wlk)
+function updm=process_actigraphy_update(tst1,tst2,bst1,bst2,nst1,nsp1,nst2,nsp2,indf_out,indf_prc,indf_light,indf_phone,indf_wlk,indf_raw)
 indf=indf_out;
 indr=indf_prc;
+indc=indf_raw;
 indg=indf_light;
 indp=indf_phone;
 indw=indf_wlk;
@@ -29,21 +30,24 @@ inds=indf(id1:id2);
 indsr=indr(id1:id2);
 indsg=indg(id1:id2);
 indsp=indp(id1:id2);
+indsc=indc(id1:id2);
 %% Activities: indbw indaw indbr indar indbm indam indbmp indamp
 indwkb=indw(1:id1);     indwka=indw(id2:1440);
 indrb=indr(1:id1);       indra=indr(id2:1440);              % activity levels before and after
+indcb=indc(1:id1);       indca=indc(id2:1440);              % raw activity before and after
 indbw=length(indwkb(indwkb==3));   indaw=length(indwka(indwka==3));      % Minutes of walking
 indbr=length(indwkb(indwkb==2 | indwkb==4));   indar=length(indwka(indwka==2 | indwka==4));  % Minutes of running or vigorous activity
 indbm=length(indrb(indrb>=15));   indam=length(indra(indra>15));      % Number of minutes with higher than 75 percentile activity
 indbsm=5*nansum(indrb(indrb>0));   indasm=5*nansum(indra(indra>0));  % Sum of activity levels before and after sleep (not averaged)
 durbf=length(indrb);      duraf=length(indra);     % Active duration before and after sleep (minutes)
+indbcm=nanmean(indcb(indcb>0));   indacm=nanmean(indca(indca>0));  % Average of raw activity before and after sleep
 
 %% Off-wrist minutes 6pm-6pm
 ind6=indf;
 indoff=length(ind6(ind6==0));
 %% Inside Sleep Epoch
 if ((id1==id2) || isempty(b1) || isempty(b2) || isempty(s1) || isempty(s2))    
-    updm=[indoff,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,indbw,indaw,indbr,indar,indbm,indam,indbsm,indasm,durbf,duraf,0];
+    updm=[indoff,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,NaN,indbw,indaw,indbr,indar,indbm,indam,indbsm,indasm,durbf,duraf,NaN,NaN,NaN,0];
 else    
     %% Bout detection
     indbt1=zeros(size(inds));
@@ -140,6 +144,7 @@ else
 
     %% Activity Level Average during sleep
     indsrm=5*nansum(indsr(indsr>0))/durs;
+    indscm=nanmean(indsc);
     
     %% Immobile minutes: indim
     indim=length(inds(inds==4));
@@ -274,5 +279,5 @@ else
     indok=1;
     
     %% Build output matrix
-    updm=[indoff,slpt,wkt,durb/60,durs/60,slat,ngt,mgt,npt,mpt,glat,indim,nph_old,mph_old,acst,acwt,nsbt,nwbt,msbt,mwbt,slef_new,nimob,nmob,pimob,pmob,nph,n1mph,pph,sfi,sfi_evnt,durn1,durn2,indsrm,indbw,indaw,indbr,indar,indbm,indam,indbsm,indasm,durbf,duraf,indok];
+    updm=[indoff,slpt,wkt,durb/60,durs/60,slat,ngt,mgt,npt,mpt,glat,indim,nph_old,mph_old,acst,acwt,nsbt,nwbt,msbt,mwbt,slef_new,nimob,nmob,pimob,pmob,nph,n1mph,pph,sfi,sfi_evnt,durn1,durn2,indsrm,indbw,indaw,indbr,indar,indbm,indam,indbsm,indasm,durbf,duraf,indbcm,indacm,indscm,indok];
 end

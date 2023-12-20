@@ -514,9 +514,9 @@ if exist('indf_saf')==1
     ff6r1=figure(61);
     set(gcf,'position',get(0,'screensize')-[0,0,0,0])
     set(gcf,'color','white')
-    indv_act=reshape(indf_saf,1,1440*length(indf_saf(1,:)));
+    indv_act=reshape(indf_saf0,1,1440*length(indf_saf0(1,:)));
     indv2_act=[zeros(1,0*60) indv_act(1:end-0*60)];
-    indf_act1=reshape(indv2_act,1440,length(indf_saf(1,:)));
+    indf_act1=reshape(indv2_act,1440,length(indf_saf0(1,:)));
     indfd1=indf_act1;
     indfdv=reshape(indfd1,1,1440*length(indfd1(1,:)));
     if gpsi==0
