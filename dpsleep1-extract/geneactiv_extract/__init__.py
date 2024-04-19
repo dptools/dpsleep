@@ -133,10 +133,10 @@ def process(read_dir, output_dir, output_tz, ext_mode, ext_date):
                 file_path = os.path.join(root_dir, file_name)
                 df1.append({'date' : file_date, 'path': file_path})
                 if ext_mode=='new':
-                    if datetime.strptime(file_date, '%Y-%m-%d')>datetime.strptime(file_date1, '%Y-%m-%d')+ timedelta(days=2):
+                    if datetime.strptime(file_date, '%Y-%m-%d')>datetime.strptime(file_date1, '%Y-%m-%d')+ timedelta(days=3):
                         df.append({'date' : file_date, 'path': file_path})
                 if ext_mode=='specific':
-                    if datetime.strptime(file_date, '%Y-%m-%d')>datetime.strptime(ext_date, '%Y-%m-%d')- timedelta(days=2):
+                    if datetime.strptime(file_date, '%Y-%m-%d')>datetime.strptime(ext_date, '%Y-%m-%d')- timedelta(days=3):
                         df2.append({'date' : file_date, 'path': file_path})
 
     # Based on the extraction mode sort the related files that needs to be extracted 
@@ -379,14 +379,20 @@ def get_tz(path):
             timezone, time_diff = df.iloc[timezones[0]]['x'].split(' ')
             sgn = time_diff[0]
             hour_diff = time_diff[1:]
-            return timezone, sgn, int(hour_diff)
+            try:
+                return timezone, sgn, int(hour_diff)
+            except Exception as e:
+                hours, minutes = map(int, hour_diff.split(':'))
+                hour_diff=hours+minutes/60
+            print(hour_diff)
+            return timezone, sgn, int(hour_diff)                             
     else:
         logger.error('Could not get the frequency from %s' % path)
         return None, None, None
 
 # Get the frequency and first date from the file
 def get_fs(path):
-    df = read_csv(path, 3, DATA_BEGINS)
+    df = read_csv(path, 2, DATA_BEGINS)
     if len(df) == 0:
         logger.error('There are no data in file %s.' % path)
         return None, None
@@ -395,7 +401,7 @@ def get_fs(path):
         df['$timestamp_dt'] = df.apply(lambda row: get_datetime(row['timestamp']), axis=1)
         df['$timestamp_fs'] = df['$timestamp_dt'].diff()
         df['$timestamp_fs'] = df.apply(lambda row: calculate_fs(row['$timestamp_fs']), axis=1)
-        return round((df['$timestamp_fs'].iloc[1]+df['$timestamp_fs'].iloc[2])/2), df['$timestamp_dt'].iloc[0]
+        return round(df['$timestamp_fs'].iloc[1]), df['$timestamp_dt'].iloc[0]
     else:
         logger.error('Could not get the frequency from %s' % path)
         return None, None
